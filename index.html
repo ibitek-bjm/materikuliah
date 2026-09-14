@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <!-- Penghubung Manifest untuk Android/Chrome -->
+    <link href="manifest.json" rel="manifest">
+    <!-- Ikon Standar & Apple Touch Icon -->
+    <link href="ikon.png" rel="icon" type="image/png">
+    <link href="ikon.png" rel="apple-touch-icon">
+    <link href="ikon.png" rel="apple-touch-icon" sizes="152x152">
+    <link href="ikon.png" rel="apple-touch-icon" sizes="167x167">
+    <link href="ikon.png" rel="apple-touch-icon" sizes="180x180">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; height: 100%; }
+        body { margin: 0; padding: 0; font-family: 'Outfit', sans-serif; background-image: url("bg.png"); background-size: cover; background-position: center; background-repeat: no-repeat; height: 100dvh; overflow: hidden; display: flex; justify-content: center; align-items: center; }
+        .page-wrapper { width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; overflow-y: auto; padding: 20px 0; box-sizing: border-box; transition: filter 0.3s ease; }
+        .glass-card { width: 90%; max-width: 400px; display: flex; flex-direction: column; padding: 20px; background: transparent; border: none; box-shadow: none; box-sizing: border-box; position: relative; justify-content: center; }
+        .logo { width: 100px; margin: 0 auto 20px auto; display: block; filter: drop-shadow(0px 4px 6px rgba(0, 0, 0, 0.911)); will-change: transform; backface-visibility: hidden; }
+        h1 { font-size: 20px; margin: 1px auto; text-transform: uppercase; letter-spacing: 1px; color: black; text-align: center; font-weight: 1000; font-family: 'Outfit', sans-serif; text-shadow: 0px 4px 6px rgba(89, 86, 86, 0.847); }
+        p { font-size: 10px; opacity: 0.8; margin: 1px auto; color: black; text-align: center; }
+        .footer-text { font-size: 10px; color: #000000; text-align: center; margin-top: 10px; opacity: 0.6; font-style: italic; }
+        .semester-list { width: 100%; margin: 20px auto; font-family: 'Outfit', sans-serif; display: flex; flex-direction: column; list-style: none; padding: 0; gap: 10px; }
+        .semester-list li { background: linear-gradient(135deg, rgba(230, 230, 210, 0.108), rgba(248, 241, 241, 0.003)); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px); border: 1px solid rgba(160, 160, 76, 0.108); padding: 15px; border-radius: 20px; text-align: center; color: black; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.364); cursor: pointer; font-size: 14px;}
+        .semester-list li:hover { background: rgba(255, 255, 255, 0.018); transform: scale(1.02); }
+        .icon-gembok { position: absolute; top: 0; right: 0; font-size: 24px; cursor: pointer; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999; justify-content: center; align-items: center; }
+        .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.55); backdrop-filter: blur(10px); z-index: 9998; }
+        .modal-content { background: rgba(18, 20, 14, 0.82); backdrop-filter: blur(35px); padding: 30px; border-radius: 25px; width: 90%; max-width: 400px; max-height: 90vh; overflow-y: auto; text-align: center; color: white; box-sizing: border-box; filter: drop-shadow(0px 4px 10px rgba(0, 0, 0, 0.55)); border: 1px solid rgba(255, 255, 255, 0.14); position: relative; }
+        .modal-close-x { position: absolute; top: 14px; right: 14px; width: 32px; height: 32px; border-radius: 50%; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.18); color: #ffffff; font-size: 18px; line-height: 1; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background 0.2s ease, transform 0.2s ease; z-index: 5; }
+        .modal-close-x:hover { background: rgba(244, 67, 54, 0.75); transform: rotate(90deg); }
+        .icon-btn { width: 44px; height: 44px; border-radius: 50%; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform 0.2s ease, background 0.2s ease; }
+        .icon-btn:hover { transform: translateY(-2px); }
+        .icon-btn svg { width: 20px; height: 20px; }
+        .icon-btn-share { background: rgba(255, 255, 255, 0.14); border: 1px solid rgba(255, 255, 255, 0.25); color: white; }
+        .icon-btn-share:hover { background: rgba(255, 255, 255, 0.22); }
+        .icon-btn-download { background: rgba(76, 175, 80, 0.9); color: white; }
+        .icon-btn-download:hover { background: rgba(76, 175, 80, 1); }
+        .icon-btn-group { display: flex; gap: 22px; align-items: flex-start; }
+        .icon-btn-wrap { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+        .icon-btn-label { font-size: 11px; color: rgba(255, 255, 255, 0.75); }
+        .detail-title-accent { width: 34px; height: 3px; background: #b99a3f; border-radius: 2px; margin: 6px auto 12px auto; }
+        .dosen-highlight { display: block; padding: 8px 12px; margin-bottom: 6px; border-left: 3px solid #b99a3f; background: rgba(185, 154, 63, 0.14); border-radius: 6px; font-weight: 600; color: #f2e9d0; }
+        .materi-scroll-wrap { position: relative; }
+        .materi-scroll-fade { position: absolute; left: 0; right: 0; bottom: 0; height: 28px; background: linear-gradient(180deg, rgba(18, 20, 14, 0), rgba(18, 20, 14, 0.85)); pointer-events: none; border-radius: 0 0 10px 10px; transition: opacity 0.2s ease; }
+        #password-input { background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.5); padding: 10px; border-radius: 10px; color: white; width: 80%; margin-bottom: 15px; }
+        .button-group { margin-top: 20px; display: flex; justify-content: center; gap: 10px; }
+        .btn { padding: 10px 20px; border-radius: 10px; border: none; cursor: pointer; font-weight: bold; }
+        .btn-buka { background: rgba(76, 175, 80, 0.85); color: white; }
+        .btn-batal { background: rgba(244, 67, 54, 0.85); color: white; }
+        .btn-unduh { background: rgba(76, 175, 80, 0.9); color: white; }
+        #data-section input, #data-section select, #data-section textarea { width: 100%; padding: 12px; margin: 10px 0; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.3); background: rgba(255, 255, 255, 0.1); color: whitesmoke; box-sizing: border-box; -webkit-appearance: none; -moz-appearance: none; appearance: none; font-family: inherit; display: block; }
+        h2 { margin-top: 0; font-size: 1.5rem; color: white; }
+        .materi-item { background: rgba(255, 255, 255, 0.1); padding: 10px; margin-bottom: 8px; border-radius: 10px; font-size: 12px; display: flex; justify-content: space-between; align-items: center; position: relative; overflow: hidden; border: 1px solid rgba(255, 255, 255, 0.12); }
+        .materi-text-wrap { flex: 1; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; margin-right: 10px; text-align: left; }
+        .btn-lihat { background: rgba(188, 210, 39, 0.9); color: #1a1d10; font-weight: bold; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; white-space: nowrap; }
+        .btn-hapus, .btn-edit { background: transparent; border: none; cursor: pointer; padding: 0; margin-left: 8px; vertical-align: middle; }
+        .btn-hapus img, .btn-edit img { width: 20px; height: 20px; display: block; }
+        .materi-box-display { background: rgba(255, 255, 255, 0.1); padding: 15px; border-radius: 10px; text-align: left; white-space: pre-wrap; font-size: 14px; line-height: 1.6; margin-top: 10px; max-height: 50vh; overflow-y: auto; color: #f5f5f0; border: 1px solid rgba(255, 255, 255, 0.12); scrollbar-width: none; }
+        .materi-box-display img { max-width: 100%; height: auto; border-radius: 15px; display: block; margin: 10px auto; }
+        #loading-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 10000; justify-content: center; align-items: center; color: white; background: rgba(0, 0, 0, 0.35); backdrop-filter: blur(6px); }
+        .loading-glass-box { background: rgba(18, 20, 14, 0.8); backdrop-filter: blur(20px); padding: 30px; border-radius: 25px; border: 1px solid rgba(255, 255, 255, 0.16); text-align: center; filter: drop-shadow(0px 4px 6px rgba(0, 0, 0, 0.699)); max-width: 300px; }
+        #loading-bar { width: 200px; height: 5px; background: rgba(255,255,255,0.2); border-radius: 5px; margin-top: 10px; overflow: hidden; }
+        #progress { width: 0%; height: 100%; background: #bcd227; transition: 0.3s; }
+        #materi-list { color: white; margin: 15px 0; text-align: left; max-height: 50dvh; overflow-y: auto; padding-right: 5px; scrollbar-width: none; }
+        #loading-text { color: #ffffff; font-weight: bold; margin-bottom: 10px; }
+        body.is-blur {
+    filter: blur(8px);
+    transition: filter 0.3s ease;
+}
+
+        /* ===== Penyesuaian tampilan layar lebar (desktop/tablet) ===== */
+        /* Tampilan HP (di bawah 768px) tidak disentuh sama sekali. */
+        @media (min-width: 768px) {
+            .glass-card { max-width: 600px; }
+            .semester-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px 16px; }
+            .modal-content { max-width: 560px; }
+        }
+        @media (min-width: 1100px) {
+            .glass-card { max-width: 950px; }
+            .semester-list { grid-template-columns: repeat(4, 1fr); gap: 18px 22px; }
+            .semester-list li { padding: 22px; font-size: 17px; }
+            h1 { font-size: 30px; }
+            p { font-size: 13px; }
+            .logo { width: 130px; margin-bottom: 26px; }
+            .footer-text { font-size: 12px; margin-top: 22px; }
+            .modal-content { max-width: 700px; padding: 40px; }
+            .materi-item { padding: 14px 16px; font-size: 14px; }
+            .materi-box-display { font-size: 16px; }
+        }
+        @media (min-width: 1500px) {
+            .glass-card { max-width: 1150px; }
+            .semester-list li { padding: 26px; font-size: 18px; }
+            h1 { font-size: 36px; }
+            p { font-size: 14px; }
+            .logo { width: 150px; }
+            .modal-content { max-width: 780px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="page-wrapper" id="page-wrapper">
+    <div class="glass-card" id="main-card">
+        <img src="gembok.png" class="icon-gembok" onclick="openModal()" style="width: 30px;">
+        <img src="logo ibitek.png" class="logo">
+        <h1>RINGKASAN MATERI KULIAH</h1>
+        <p>INSTITUT BISNIS DAN TEKNOLOGI KALIMANTAN BANJARMASIN</p>
+        <ul class="semester-list" onclick="pilihSemester(event)">
+            <li data-smt="1">Materi Semester 1</li><li data-smt="2">Materi Semester 2</li>
+            <li data-smt="3">Materi Semester 3</li><li data-smt="4">Materi Semester 4</li>
+            <li data-smt="5">Materi Semester 5</li><li data-smt="6">Materi Semester 6</li>
+            <li data-smt="7">Materi Semester 7</li><li data-smt="8">Materi Semester 8</li>
+        </ul>
+        <div id="materi-container"><p class="footer-text">Dibuat oleh Ahmad Zikrianor</p></div>
+    </div>
+</div>
+
+<div id="loading-overlay">
+    <div class="loading-glass-box">
+        <div id="loading-text">Memproses...</div>
+        <div id="loading-bar"><div id="progress"></div></div>
+    </div>
+</div>
+
+<div id="overlay" class="overlay"></div>
+
+<div id="login-modal" class="modal">
+    <div class="modal-content" id="modal-wrapper">
+        <button class="modal-close-x" onclick="handleModalClose()" aria-label="Tutup" title="Tutup">&times;</button>
+        <div id="password-section">
+            <h2 id="pass-title">Masukkan Password</h2>
+            <input type="password" id="password-input" placeholder="Password...">
+            <div class="button-group">
+                <button class="btn btn-buka" onclick="checkPassword()">Buka</button>
+            </div>
+        </div>
+        <div id="data-section" style="display: none;">
+            <h2 id="data-title">Input Data Materi</h2>
+            <input type="hidden" id="edit-id">
+            <select id="semester">
+                <option value="1">Semester 1</option><option value="2">Semester 2</option>
+                <option value="3">Semester 3</option><option value="4">Semester 4</option>
+                <option value="5">Semester 5</option><option value="6">Semester 6</option>
+                <option value="7">Semester 7</option><option value="8">Semester 8</option>
+            </select>
+            <input type="text" id="matkul" placeholder="Nama Mata Kuliah">
+            <input type="date" id="tanggal">
+            <textarea id="materi-isi" placeholder="Tulis isi materi di sini (bisa paste gambar)..." style="height: 300px;"></textarea>
+            <div class="button-group">
+                <button class="btn btn-buka" onclick="saveData()">Simpan</button>
+            </div>
+        </div>
+        <div id="materi-view" style="display: none;">
+            <h2 id="materi-title">Materi</h2>
+            <div id="materi-list"></div>
+            <div id="materi-detail-container" style="display: none;"></div>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
+    import { getDatabase, ref, push, onValue, remove, set, get, child } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
+    const firebaseConfig = { apiKey: "AIzaSyARF88zhkjygBeRErfVkXhrkMVKZh8KTdw", authDomain: "materi-kuliah-574a7.firebaseapp.com", databaseURL: "https://materi-kuliah-574a7-default-rtdb.asia-southeast1.firebasedatabase.app", projectId: "materi-kuliah-574a7", storageBucket: "materi-kuliah-574a7.firebasestorage.app", messagingSenderId: "292121429363", appId: "1:292121429363:web:205be154df903cde35b106" };
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    let tempAction = null;
+
+    const handlePaste = (e) => {
+        const item = (e.clipboardData || window.clipboardData).items[0];
+        if (item && item.type.indexOf("image") !== -1) {
+            const blob = item.getAsFile();
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const imgBase64 = event.target.result;
+                const textarea = document.getElementById("materi-isi");
+                const text = textarea.value;
+                const start = textarea.selectionStart;
+                const end = textarea.selectionEnd;
+                textarea.value = text.slice(0, start) + `<img src="${imgBase64}" />` + text.slice(end);
+            };
+            reader.readAsDataURL(blob);
+            e.preventDefault();
+        }
+    };
+    document.getElementById("materi-isi").addEventListener("paste", handlePaste);
+
+    window.openModal = () => { document.getElementById("login-modal").style.display = "flex"; document.getElementById("overlay").style.display = "block"; }
+    window.closeModal = () => { 
+        document.getElementById("login-modal").style.display = "none"; 
+        document.getElementById("overlay").style.display = "none"; 
+        document.getElementById("password-section").style.display = "block"; 
+        document.getElementById("data-section").style.display = "none"; 
+        document.getElementById("materi-view").style.display = "none"; 
+        document.getElementById("materi-detail-container").style.display = "none"; 
+        document.getElementById("materi-list").style.display = "block"; 
+        document.getElementById("materi-title").style.display = "block";
+        document.getElementById("password-input").value = ""; 
+        currentSharedMaterial = null;
+        tempAction = null;
+    }
+
+    // Tombol X tunggal di pojok modal: jika sedang melihat detail materi,
+    // cukup kembali ke daftar; selain itu, tutup seluruh modal.
+    window.handleModalClose = () => {
+        const detailCont = document.getElementById("materi-detail-container");
+        if (detailCont && detailCont.style.display === "block") {
+            tutupDetail();
+        } else {
+            closeModal();
+        }
+    }
+
+    const toggleLoading = (show, text = "Memproses PDF...") => {
+        const overlay = document.getElementById("loading-overlay");
+        const wrapper = document.getElementById("page-wrapper");
+        document.getElementById("loading-text").innerText = text;
+        overlay.style.display = show ? "flex" : "none";
+        wrapper.style.filter = show ? "blur(8px)" : "none";
+        document.getElementById("progress").style.width = show ? "100%" : "0%";
+    };
+
+    window.downloadMateri = async (mk, tgl, encodedIsi) => {
+        let tempRoot = null;
+        try {
+            const isi = decodeURIComponent(atob(encodedIsi));
+            toggleLoading(true, "Memproses PDF...");
+            const { jsPDF } = window.jspdf;
+
+            const PDF_WIDTH = 210;
+            const PDF_HEIGHT = 297;
+            const MARGIN_X = 12;
+            const MARGIN_Y = 12;
+            const CONTENT_WIDTH = PDF_WIDTH - (MARGIN_X * 2);
+            const CONTENT_HEIGHT = PDF_HEIGHT - (MARGIN_Y * 2);
+
+            // Ambil bg.png dan logo sebagai data URL. Jika gagal, PDF tetap dibuat dengan desain warna senada.
+            const fetchAsDataUrl = async (path) => {
+                try {
+                    const response = await fetch(path);
+                    if (!response.ok) return "";
+                    const blob = await response.blob();
+                    return await new Promise(resolve => {
+                        const reader = new FileReader();
+                        reader.onload = () => resolve(reader.result);
+                        reader.onerror = () => resolve("");
+                        reader.readAsDataURL(blob);
+                    });
+                } catch (e) {
+                    return "";
+                }
+            };
+
+            const [bgDataUrl, logoDataUrl] = await Promise.all([
+                fetchAsDataUrl("bg.png"),
+                fetchAsDataUrl("logo ibitek.png")
+            ]);
+
+            // Palet warna diambil dari identitas logo (hijau tua & emas).
+            const HIJAU_TUA = "#3f4d2a";
+            const HIJAU = "#55692f";
+            const EMAS = "#b99a3f";
+            const KREM = "#faf8f0";
+
+            tempRoot = document.createElement("div");
+            tempRoot.style.cssText = `position:absolute;left:-10000px;top:0;width:${CONTENT_WIDTH}mm;box-sizing:border-box;`;
+            document.body.appendChild(tempRoot);
+
+            const createPage = (pageNumber, isFirst) => {
+                const page = document.createElement("div");
+                page.style.cssText = `
+                    width:${CONTENT_WIDTH}mm;
+                    height:${CONTENT_HEIGHT}mm;
+                    position:relative;
+                    overflow:hidden;
+                    box-sizing:border-box;
+                    color:#232318;
+                    font-family:'Outfit', Arial, sans-serif;
+                    font-size:11.5pt;
+                    line-height:1.65;
+                    background:${KREM};
+                `;
+
+                if (bgDataUrl) {
+                    const bg = document.createElement("img");
+                    bg.src = bgDataUrl;
+                    bg.style.cssText = `position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.09;pointer-events:none;`;
+                    page.appendChild(bg);
+                }
+
+                const overlay = document.createElement("div");
+                overlay.style.cssText = `position:absolute;inset:0;background:linear-gradient(160deg,rgba(250,248,240,.96),rgba(250,248,240,.88));pointer-events:none;`;
+                page.appendChild(overlay);
+
+                // Bilah aksen atas bergradasi hijau - emas - hijau.
+                const accent = document.createElement("div");
+                accent.style.cssText = `position:absolute;top:0;left:0;right:0;height:3mm;background:linear-gradient(90deg,${HIJAU_TUA},${EMAS} 50%,${HIJAU_TUA});`;
+                page.appendChild(accent);
+
+                // Watermark logo transparan di pojok kanan bawah, hanya dekorasi.
+                if (logoDataUrl) {
+                    const wm = document.createElement("img");
+                    wm.src = logoDataUrl;
+                    wm.style.cssText = `position:absolute;right:-14mm;bottom:-14mm;width:70mm;height:70mm;opacity:.05;pointer-events:none;`;
+                    page.appendChild(wm);
+                }
+
+                const content = document.createElement("div");
+                content.style.cssText = `position:relative;z-index:2;height:100%;box-sizing:border-box;padding:${isFirst ? "8mm" : "16mm"} 10mm 14mm 10mm;overflow:hidden;`;
+                page.appendChild(content);
+
+                // Header ramping untuk halaman lanjutan (bukan halaman pertama).
+                if (!isFirst) {
+                    const runningHeader = document.createElement("div");
+                    runningHeader.style.cssText = `position:absolute;z-index:3;left:10mm;right:10mm;top:5mm;display:flex;justify-content:space-between;align-items:baseline;border-bottom:.4mm solid ${EMAS};padding-bottom:1.6mm;box-sizing:border-box;`;
+                    runningHeader.innerHTML = `
+                        <span style="font-size:9px;font-weight:700;letter-spacing:.6px;color:${HIJAU_TUA};text-transform:uppercase;">${mk}</span>
+                        <span style="font-size:8px;color:${HIJAU};letter-spacing:.4px;">RINGKASAN MATERI KULIAH</span>
+                    `;
+                    page.appendChild(runningHeader);
+                }
+
+                const footer = document.createElement("div");
+                footer.style.cssText = `position:absolute;z-index:3;left:10mm;right:10mm;bottom:5mm;display:flex;justify-content:space-between;align-items:center;border-top:.3mm solid rgba(63,77,42,.28);padding-top:2.2mm;font-size:8px;color:rgba(35,35,24,.6);letter-spacing:.4px;box-sizing:border-box;`;
+                footer.innerHTML = `<span>Institut Bisnis dan Teknologi Kalimantan Banjarmasin</span><span class="pdf-page-label">Halaman ${pageNumber}</span>`;
+                page.appendChild(footer);
+
+                tempRoot.appendChild(page);
+                return { page, content };
+            };
+
+            let pageNumber = 1;
+            let current = createPage(pageNumber, true);
+
+            const header = document.createElement("div");
+            header.style.cssText = `text-align:center;margin-bottom:8mm;padding:6mm 7mm;border-radius:3mm;border:.4mm solid ${EMAS};background:linear-gradient(160deg,rgba(255,255,255,.92),rgba(255,255,255,.75));box-shadow:0 1.5mm 5mm rgba(63,77,42,.12);box-sizing:border-box;`;
+            header.innerHTML = `
+                ${logoDataUrl ? `<img src="${logoDataUrl}" style="width:20mm;height:20mm;object-fit:contain;display:block;margin:0 auto 3mm auto;">` : ""}
+                <div style="font-size:8px;letter-spacing:2.5px;margin-bottom:2.5mm;color:${EMAS};font-weight:700;">MATERI PERKULIAHAN</div>
+                <h1 style="font-size:19px;line-height:1.3;margin:0 0 2.5mm;text-transform:uppercase;color:${HIJAU_TUA};font-weight:900;letter-spacing:.3px;">${mk}</h1>
+                <div style="width:14mm;height:.5mm;background:${EMAS};margin:0 auto 3mm auto;"></div>
+                <p style="font-size:9.5px;margin:0;color:#5a5a4a;letter-spacing:.4px;">Tanggal&nbsp;: ${tgl}</p>
+            `;
+            current.content.appendChild(header);
+
+            const rawLines = isi.split(/\r?\n/);
+            const blocks = rawLines.length ? rawLines : [isi];
+
+            for (const line of blocks) {
+                const trimmed = line.trim();
+                const isDosenLine = /^dosen\s*:/i.test(trimmed);
+
+                const block = document.createElement("div");
+                if (isDosenLine) {
+                    // Baris nama dosen ditonjolkan dalam kotak highlight.
+                    block.style.cssText = `margin:0 0 5mm 0;box-sizing:border-box;overflow-wrap:anywhere;padding:3mm 4mm;border-left:1mm solid ${EMAS};background:rgba(185,154,63,.09);border-radius:1.2mm;font-weight:700;color:${HIJAU_TUA};font-size:11pt;`;
+                    block.innerHTML = trimmed || "&nbsp;";
+                } else {
+                    block.style.cssText = `margin:0 0 4.5mm 0;box-sizing:border-box;overflow-wrap:anywhere;text-align:justify;`;
+                    block.innerHTML = trimmed ? line : "&nbsp;";
+                }
+
+                block.querySelectorAll("img").forEach(img => {
+                    img.style.cssText = `display:block;margin:4mm auto;max-width:100%;max-height:170mm;width:auto;height:auto;object-fit:contain;border-radius:3mm;box-shadow:0 1.5mm 5mm rgba(0,0,0,.15);`;
+                });
+
+                current.content.appendChild(block);
+                const images = [...block.querySelectorAll("img")];
+                await Promise.all(images.map(img => img.complete ? Promise.resolve() : new Promise(resolve => {
+                    img.onload = resolve; img.onerror = resolve;
+                })));
+
+                // Cek area content, bukan seluruh halaman yang juga berisi footer/dekorasi.
+                if (current.content.scrollHeight > current.content.clientHeight + 1 && current.content.children.length > 1) {
+                    current.content.removeChild(block);
+                    pageNumber++;
+                    current = createPage(pageNumber, false);
+                    current.content.appendChild(block);
+                }
+            }
+
+            const pages = [...tempRoot.children];
+
+            // Sekarang total halaman sudah diketahui, perbarui label "Halaman X dari Y".
+            pages.forEach((p, idx) => {
+                const label = p.querySelector(".pdf-page-label");
+                if (label) label.textContent = `Halaman ${idx + 1} dari ${pages.length}`;
+            });
+
+            const pdf = new jsPDF("p", "mm", "a4");
+
+            for (let i = 0; i < pages.length; i++) {
+                const canvas = await html2canvas(pages[i], {
+                    scale: 2,
+                    useCORS: false,
+                    allowTaint: false,
+                    backgroundColor: "#faf8f0",
+                    logging: false
+                });
+
+                const imgData = canvas.toDataURL("image/jpeg", 0.95);
+                if (i > 0) pdf.addPage();
+                pdf.addImage(imgData, "JPEG", MARGIN_X, MARGIN_Y, CONTENT_WIDTH, CONTENT_HEIGHT, undefined, "FAST");
+            }
+
+            pdf.save((mk || "materi") + ".pdf");
+        } catch (error) {
+            console.error("Gagal membuat PDF:", error);
+            alert("PDF gagal dibuat. Silakan coba lagi.");
+        } finally {
+            if (tempRoot && tempRoot.parentNode) tempRoot.parentNode.removeChild(tempRoot);
+            toggleLoading(false);
+        }
+    }
+
+    window.tutupDetail = () => {
+        document.getElementById("materi-detail-container").style.display = "none";
+        document.getElementById("materi-list").style.display = "block";
+        document.getElementById("materi-title").style.display = "block";
+    }
+    
+    window.checkPassword = () => {
+        let pass = document.getElementById("password-input").value;
+        if (pass === "1234") {
+            document.getElementById("password-section").style.display = "none";
+            if (tempAction) {
+                if (tempAction.type === 'delete') { 
+                    remove(ref(db, 'materi/' + tempAction.smt + '/' + tempAction.id)).then(() => { 
+                        alert("Berhasil menghapus!");
+                        window.viewMateri(tempAction.smt);
+                    }); 
+                } else if (tempAction.type === 'edit') {
+                    document.getElementById("data-section").style.display = "block";
+                    document.getElementById("data-title").innerText = "Edit Materi";
+                    document.getElementById("semester").value = tempAction.smt;
+                    document.getElementById("matkul").value = tempAction.data.mk;
+                    document.getElementById("tanggal").value = tempAction.data.tgl;
+                    document.getElementById("materi-isi").value = tempAction.data.isi;
+                    document.getElementById("edit-id").value = tempAction.id;
+                }
+            } else { document.getElementById("data-section").style.display = "block"; document.getElementById("data-title").innerText = "Input Data Materi"; }
+        } else { alert("Password Salah!"); }
+    }
+
+    window.saveData = () => {
+        let smt = document.getElementById("semester").value;
+        let id = document.getElementById("edit-id").value;
+        let mk = document.getElementById("matkul").value;
+        let tgl = document.getElementById("tanggal").value;
+        let isi = document.getElementById("materi-isi").value;
+        if(!mk || !tgl || !isi) { alert("Isi semua data!"); return; }
+        
+        toggleLoading(true, "Menyimpan...");
+        const refPath = id ? ref(db, 'materi/' + smt + '/' + id) : push(ref(db, 'materi/' + smt));
+        set(refPath, { mk, tgl, isi }).then(() => {
+            alert("Data Berhasil Disimpan!"); 
+            toggleLoading(false);
+            document.getElementById("matkul").value = "";
+            document.getElementById("tanggal").value = "";
+            document.getElementById("materi-isi").value = "";
+            document.getElementById("edit-id").value = "";
+            if(id) { window.viewMateri(smt); }
+        });
+    }
+
+    window.tampilkanDetail = (mk, tgl, encodedIsi, smt = null, id = null) => {
+        const isi = decodeURIComponent(atob(encodedIsi));
+        if (smt && id) {
+            currentSharedMaterial = { smt, id, mk, tgl, isi };
+        }
+        document.getElementById("materi-title").style.display = "none";
+        document.getElementById("materi-list").style.display = "none";
+        const detailCont = document.getElementById("materi-detail-container");
+        detailCont.style.display = "block";
+
+        // Baris "Dosen : ..." ditonjolkan agar konsisten dengan tampilan PDF.
+        const isiLines = isi.split(/\r?\n/);
+        const isiFormatted = isiLines.map(line => {
+            const trimmed = line.trim();
+            return /^dosen\s*:/i.test(trimmed) ? `<span class="dosen-highlight">${trimmed}</span>` : line;
+        }).join("\n");
+
+        detailCont.innerHTML = `
+            <h2 style="font-size: 1.5rem; margin-top: -10px; margin-bottom:2px;">${mk}</h2>
+            <div class="detail-title-accent"></div>
+            <p style="font-size: 0.9rem; margin-bottom: 15px; color: #ccc;">${tgl}</p>
+            <div class="materi-scroll-wrap">
+                <div class="materi-box-display">${isiFormatted}</div>
+                <div class="materi-scroll-fade"></div>
+            </div>
+            <div class="button-group icon-btn-group" style="flex-wrap:wrap; justify-content:center; margin-top: 18px;">
+                <div class="icon-btn-wrap">
+                    <button class="icon-btn icon-btn-share" onclick="bagikanMateri()" aria-label="Bagikan" title="Bagikan">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+                    </button>
+                    <span class="icon-btn-label">Bagikan</span>
+                </div>
+                <div class="icon-btn-wrap">
+                    <button class="icon-btn icon-btn-download" onclick="downloadMateri('${mk}', '${tgl}', '${encodedIsi}')" aria-label="Unduh PDF" title="Unduh PDF">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                    </button>
+                    <span class="icon-btn-label">Unduh PDF</span>
+                </div>
+            </div>
+        `;
+
+        // Sembunyikan efek fade begitu pengguna scroll sampai bawah.
+        const scrollBox = detailCont.querySelector(".materi-box-display");
+        const fade = detailCont.querySelector(".materi-scroll-fade");
+        const updateFade = () => {
+            const atBottom = scrollBox.scrollTop + scrollBox.clientHeight >= scrollBox.scrollHeight - 4;
+            fade.style.opacity = atBottom ? "0" : "1";
+        };
+        if (scrollBox.scrollHeight <= scrollBox.clientHeight) fade.style.opacity = "0";
+        scrollBox.addEventListener("scroll", updateFade);
+        updateFade();
+    }
+
+
+    // ============================================================
+    // SISTEM LINK MATERI INDIVIDUAL - TANPA REPOSITORY BARU
+    // Contoh link lama (masih didukung):
+    // .../materikuliah/?semester=3&materi=ID_MATERI
+    // Contoh link pendek (baru):
+    // .../materikuliah/?s=KODE_PENDEK
+    // ============================================================
+    let currentSharedMaterial = null;
+
+    // Buat kode pendek yang konsisten (deterministik) dari semester+id materi,
+    // supaya materi yang sama selalu punya kode pendek yang sama (tidak numpuk di DB).
+    function buatKodePendek(smt, id) {
+        const raw = smt + ":" + id;
+        let hash = 5381;
+        for (let i = 0; i < raw.length; i++) {
+            hash = ((hash << 5) + hash) + raw.charCodeAt(i);
+            hash = hash & 0xFFFFFFFF; // keep 32-bit
+        }
+        // Ubah ke base36 & pastikan positif, ambil 7 karakter.
+        return Math.abs(hash).toString(36).padStart(7, "0").slice(0, 7);
+    }
+
+    function buatLinkMateriPanjang(smt, id) {
+        const url = new URL(window.location.href);
+        url.search = "";
+        url.hash = "";
+        url.searchParams.set("semester", smt);
+        url.searchParams.set("materi", id);
+        return url.toString();
+    }
+
+    // Simpan mapping kode pendek -> {semester, materi} ke Firebase,
+    // lalu kembalikan URL pendeknya. Jika gagal (mis. offline), fallback ke link panjang.
+    async function buatLinkMateri(smt, id) {
+        const kode = buatKodePendek(smt, id);
+        try {
+            await set(ref(db, "shortlink/" + kode), { semester: smt, materi: id });
+            const url = new URL(window.location.href);
+            url.search = "";
+            url.hash = "";
+            url.searchParams.set("s", kode);
+            return url.toString();
+        } catch (error) {
+            console.error("Gagal membuat link pendek, pakai link panjang:", error);
+            return buatLinkMateriPanjang(smt, id);
+        }
+    }
+
+    window.bagikanMateri = async () => {
+        if (!currentSharedMaterial) return;
+
+        const link = await buatLinkMateri(
+            currentSharedMaterial.smt,
+            currentSharedMaterial.id
+        );
+
+        try {
+            if (navigator.share) {
+                await navigator.share({
+                    title: currentSharedMaterial.mk,
+                    text: "Materi kuliah: " + currentSharedMaterial.mk,
+                    url: link
+                });
+            } else if (navigator.clipboard) {
+                await navigator.clipboard.writeText(link);
+                alert("Link materi berhasil disalin!");
+            } else {
+                prompt("Salin link materi ini:", link);
+            }
+        } catch (error) {
+            // User menutup dialog share tidak perlu diberi error.
+            if (error && error.name !== "AbortError") {
+                alert("Link materi: " + link);
+            }
+        }
+    };
+
+    async function bukaMateriDariURL() {
+        const params = new URLSearchParams(window.location.search);
+        let smt = params.get("semester");
+        let materiId = params.get("materi");
+        const kodePendek = params.get("s");
+
+        if (!smt && !materiId && !kodePendek) return; // tidak ada parameter link sama sekali
+
+        try {
+            // Jika pakai link pendek (?s=kode), cari dulu mapping-nya di Firebase.
+            if (kodePendek) {
+                toggleLoading(true, "Membuka materi...");
+                const shortSnap = await get(child(ref(db), 'shortlink/' + kodePendek));
+                const shortData = shortSnap.val();
+                if (!shortData) {
+                    toggleLoading(false);
+                    alert("Link materi tidak ditemukan atau sudah tidak berlaku.");
+                    return;
+                }
+                smt = shortData.semester;
+                materiId = shortData.materi;
+            }
+
+            if (!smt || !materiId) { toggleLoading(false); return; }
+            if (!kodePendek) toggleLoading(true, "Membuka materi...");
+            const snapshot = await get(child(ref(db), 'materi/' + smt + '/' + materiId));
+            const item = snapshot.val();
+
+            if (!item) {
+                toggleLoading(false);
+                alert("Materi yang dibagikan tidak ditemukan atau sudah dihapus.");
+                return;
+            }
+
+            document.getElementById("password-section").style.display = "none";
+            document.getElementById("data-section").style.display = "none";
+            document.getElementById("materi-view").style.display = "block";
+            document.getElementById("materi-title").innerText = item.mk;
+
+            const encoded = btoa(encodeURIComponent(item.isi));
+            currentSharedMaterial = {
+                smt: smt,
+                id: materiId,
+                mk: item.mk,
+                tgl: item.tgl,
+                isi: item.isi
+            };
+
+            tampilkanDetail(item.mk, item.tgl, encoded);
+            toggleLoading(false);
+            openModal();
+        } catch (error) {
+            console.error("Gagal membuka link materi:", error);
+            toggleLoading(false);
+            alert("Materi gagal dimuat. Silakan coba lagi.");
+        }
+    }
+
+    window.viewMateri = async (smt) => {
+        toggleLoading(true, "Materi sedang dimuat, silahkan tunggu sebentar...");
+        document.getElementById("password-section").style.display = "none"; 
+        document.getElementById("data-section").style.display = "none"; 
+        document.getElementById("materi-view").style.display = "block"; 
+        document.getElementById("materi-title").innerText = "Materi Semester " + smt;
+        let listDiv = document.getElementById("materi-list"); 
+        listDiv.style.display = "block";
+        
+        const snapshot = await get(child(ref(db), 'materi/' + smt));
+        listDiv.innerHTML = ""; 
+        const data = snapshot.val();
+        if (!data) { listDiv.innerHTML = "Belum ada materi."; }
+        else {
+            let items = Object.keys(data).map(key => ({ id: key, ...data[key] }));
+            items.sort((a, b) => new Date(b.tgl) - new Date(a.tgl));
+            items.forEach(item => {
+                const encoded = btoa(encodeURIComponent(item.isi));
+                listDiv.innerHTML += `
+                    <div class="materi-item">
+                        <div class="materi-text-wrap"><strong>${item.mk}</strong><br><small>${item.tgl}</small></div>
+                        <div>
+                            <button class="btn-lihat" onclick="tampilkanDetail('${item.mk}', '${item.tgl}', '${encoded}', '${smt}', '${item.id}')">Lihat</button>
+                            <button class="btn-edit" onclick="initEdit('${smt}', '${item.id}', '${item.mk}', '${item.tgl}', '${encoded}')"><img src="pensil.png"></button>
+                            <button class="btn-hapus" onclick="initHapus('${smt}', '${item.id}')"><img src="sampah.png"></button>
+                        </div>
+                    </div>`;
+            });
+        }
+        toggleLoading(false);
+        openModal();
+    }
+
+    window.initHapus = (smt, id) => { 
+        tempAction = {type: 'delete', smt, id}; 
+        document.getElementById("materi-view").style.display = "none";
+        document.getElementById("password-section").style.display = "block";
+        openModal(); 
+    }
+    window.initEdit = (smt, id, mk, tgl, encoded) => { 
+        tempAction = {type: 'edit', smt, id, data: {mk, tgl, isi: decodeURIComponent(atob(encoded))}}; 
+        document.getElementById("materi-view").style.display = "none";
+        document.getElementById("password-section").style.display = "block";
+        openModal(); 
+    }
+    window.pilihSemester = (event) => { if (event.target.tagName === 'LI') window.viewMateri(event.target.getAttribute('data-smt')); }
+
+    // Jika URL memiliki ?semester=...&materi=..., langsung buka materi tersebut.
+    window.addEventListener("DOMContentLoaded", () => {
+        bukaMateriDariURL();
+    });
+</script>
+</body>
+</html>
