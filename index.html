@@ -29,6 +29,19 @@
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999; justify-content: center; align-items: center; }
         .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.55); backdrop-filter: blur(10px); z-index: 9998; }
         .modal-content { background: rgba(18, 20, 14, 0.82); backdrop-filter: blur(35px); padding: 30px; border-radius: 25px; width: 90%; max-width: 400px; max-height: 90vh; overflow-y: auto; text-align: center; color: white; box-sizing: border-box; filter: drop-shadow(0px 4px 10px rgba(0, 0, 0, 0.55)); border: 1px solid rgba(255, 255, 255, 0.14); position: relative; }
+        .modal-content::-webkit-scrollbar { display: none; }
+        .modal-content { scrollbar-width: none; -ms-overflow-style: none; }
+        /* Saat menampilkan daftar/detail materi, modal mengikuti tinggi konten (menyusut kalau materi sedikit), dibatasi maksimal tinggi layar agar tetap discroll kalau materi banyak. Modal-content sendiri tidak lagi discroll (overflow: hidden) supaya judul & tombol X tetap diam di tempat; hanya bagian dalam (daftar/detail) yang discroll, dan scrollbar-nya disembunyikan. */
+        .modal-content.list-mode { max-height: 88vh; max-height: 88dvh; display: flex; flex-direction: column; overflow: hidden; }
+        .modal-content.list-mode #materi-view { flex: 1 1 auto; min-height: 0; display: flex !important; flex-direction: column; }
+        .modal-content.list-mode #materi-title { flex: 0 0 auto; }
+        .modal-content.list-mode #materi-list { flex: 1 1 auto; min-height: 0; max-height: none; overflow-y: auto; -ms-overflow-style: none; scrollbar-width: none; -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; }
+        .modal-content.list-mode #materi-list::-webkit-scrollbar { display: none; }
+        .modal-content.list-mode #materi-detail-container { flex: 1 1 auto; min-height: 0; overflow-y: auto; display: flex !important; flex-direction: column; -ms-overflow-style: none; scrollbar-width: none; }
+        .modal-content.list-mode #materi-detail-container::-webkit-scrollbar { display: none; }
+        .modal-content.list-mode #materi-detail-container .materi-scroll-wrap { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
+        .modal-content.list-mode #materi-detail-container .materi-box-display { flex: 1 1 auto; max-height: none; }
+        .materi-box-display::-webkit-scrollbar { display: none; }
         .modal-close-x { position: absolute; top: 14px; right: 14px; width: 32px; height: 32px; border-radius: 50%; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.18); color: #ffffff; font-size: 18px; line-height: 1; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background 0.2s ease, transform 0.2s ease; z-index: 5; }
         .modal-close-x:hover { background: rgba(244, 67, 54, 0.75); transform: rotate(90deg); }
         .icon-btn { width: 44px; height: 44px; border-radius: 50%; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform 0.2s ease, background 0.2s ease; }
@@ -188,6 +201,29 @@
     };
     document.getElementById("materi-isi").addEventListener("paste", handlePaste);
 
+    // Indikator scroll untuk daftar materi: tepi atas dan/atau bawah daftar memudar
+    // ke transparan (mask-image) sesuai posisi scroll saat ini — tepi atas memudar
+    // kalau sudah discroll ke bawah (masih ada item di atas), tepi bawah memudar
+    // kalau masih ada item di bawah yang belum terlihat.
+    const MATERI_FADE_TOP = 26;
+    const MATERI_FADE_BOTTOM = 32;
+    const updateMateriListFade = () => {
+        const listDiv = document.getElementById("materi-list");
+        if (!listDiv) return;
+        const atTop = listDiv.scrollTop <= 4;
+        const atBottom = listDiv.scrollTop + listDiv.clientHeight >= listDiv.scrollHeight - 4;
+        const bisaScroll = listDiv.scrollHeight > listDiv.clientHeight + 4;
+        let mask = "none";
+        if (bisaScroll) {
+            const atas = atTop ? "#000 0%" : `transparent 0px, #000 ${MATERI_FADE_TOP}px`;
+            const bawah = atBottom ? "#000 100%" : `#000 calc(100% - ${MATERI_FADE_BOTTOM}px), transparent 100%`;
+            mask = `linear-gradient(180deg, ${atas}, ${bawah})`;
+        }
+        listDiv.style.webkitMaskImage = mask;
+        listDiv.style.maskImage = mask;
+    };
+    document.getElementById("materi-list").addEventListener("scroll", updateMateriListFade);
+
     window.openModal = () => { document.getElementById("login-modal").style.display = "flex"; document.getElementById("overlay").style.display = "block"; }
     window.closeModal = () => { 
         document.getElementById("login-modal").style.display = "none"; 
@@ -198,6 +234,7 @@
         document.getElementById("materi-detail-container").style.display = "none"; 
         document.getElementById("materi-list").style.display = "block"; 
         document.getElementById("materi-title").style.display = "block";
+        document.getElementById("modal-wrapper").classList.remove("list-mode");
         document.getElementById("password-input").value = ""; 
         currentSharedMaterial = null;
         tempAction = null;
@@ -420,6 +457,7 @@
         document.getElementById("materi-detail-container").style.display = "none";
         document.getElementById("materi-list").style.display = "block";
         document.getElementById("materi-title").style.display = "block";
+        requestAnimationFrame(updateMateriListFade);
     }
     
     window.checkPassword = () => {
@@ -634,6 +672,7 @@
             document.getElementById("password-section").style.display = "none";
             document.getElementById("data-section").style.display = "none";
             document.getElementById("materi-view").style.display = "block";
+            document.getElementById("modal-wrapper").classList.add("list-mode");
             document.getElementById("materi-title").innerText = item.mk;
 
             const encoded = btoa(encodeURIComponent(item.isi));
@@ -660,6 +699,7 @@
         document.getElementById("password-section").style.display = "none"; 
         document.getElementById("data-section").style.display = "none"; 
         document.getElementById("materi-view").style.display = "block"; 
+        document.getElementById("modal-wrapper").classList.add("list-mode");
         document.getElementById("materi-title").innerText = "Materi Semester " + smt;
         let listDiv = document.getElementById("materi-list"); 
         listDiv.style.display = "block";
@@ -686,17 +726,20 @@
         }
         toggleLoading(false);
         openModal();
+        requestAnimationFrame(updateMateriListFade);
     }
 
     window.initHapus = (smt, id) => { 
         tempAction = {type: 'delete', smt, id}; 
         document.getElementById("materi-view").style.display = "none";
+        document.getElementById("modal-wrapper").classList.remove("list-mode");
         document.getElementById("password-section").style.display = "block";
         openModal(); 
     }
     window.initEdit = (smt, id, mk, tgl, encoded) => { 
         tempAction = {type: 'edit', smt, id, data: {mk, tgl, isi: decodeURIComponent(atob(encoded))}}; 
         document.getElementById("materi-view").style.display = "none";
+        document.getElementById("modal-wrapper").classList.remove("list-mode");
         document.getElementById("password-section").style.display = "block";
         openModal(); 
     }
