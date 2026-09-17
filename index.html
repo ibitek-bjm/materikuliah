@@ -38,6 +38,7 @@
         .modal-content.list-mode #materi-list { flex: 1 1 auto; min-height: 0; max-height: none; overflow-y: auto; -ms-overflow-style: none; scrollbar-width: none; -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; }
         .modal-content.list-mode #materi-list::-webkit-scrollbar { display: none; }
         .modal-content.list-mode #materi-detail-container { flex: 1 1 auto; min-height: 0; overflow-y: auto; display: flex !important; flex-direction: column; -ms-overflow-style: none; scrollbar-width: none; }
+        .modal-content.list-mode #materi-detail-container.materi-hidden { display: none !important; }
         .modal-content.list-mode #materi-detail-container::-webkit-scrollbar { display: none; }
         .modal-content.list-mode #materi-detail-container .materi-scroll-wrap { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
         .modal-content.list-mode #materi-detail-container .materi-box-display { flex: 1 1 auto; max-height: none; }
@@ -169,7 +170,7 @@
         <div id="materi-view" style="display: none;">
             <h2 id="materi-title">Materi</h2>
             <div id="materi-list"></div>
-            <div id="materi-detail-container" style="display: none;"></div>
+            <div id="materi-detail-container" class="materi-hidden" style="display: none;"></div>
         </div>
     </div>
 </div>
@@ -232,6 +233,7 @@
         document.getElementById("data-section").style.display = "none"; 
         document.getElementById("materi-view").style.display = "none"; 
         document.getElementById("materi-detail-container").style.display = "none"; 
+        document.getElementById("materi-detail-container").classList.add("materi-hidden");
         document.getElementById("materi-list").style.display = "block"; 
         document.getElementById("materi-title").style.display = "block";
         document.getElementById("modal-wrapper").classList.remove("list-mode");
@@ -454,7 +456,9 @@
     }
 
     window.tutupDetail = () => {
-        document.getElementById("materi-detail-container").style.display = "none";
+        const detailCont = document.getElementById("materi-detail-container");
+        detailCont.style.display = "none";
+        detailCont.classList.add("materi-hidden");
         document.getElementById("materi-list").style.display = "block";
         document.getElementById("materi-title").style.display = "block";
         requestAnimationFrame(updateMateriListFade);
@@ -512,6 +516,7 @@
         document.getElementById("materi-title").style.display = "none";
         document.getElementById("materi-list").style.display = "none";
         const detailCont = document.getElementById("materi-detail-container");
+        detailCont.classList.remove("materi-hidden");
         detailCont.style.display = "block";
 
         // Baris "Dosen : ..." ditonjolkan agar konsisten dengan tampilan PDF.
@@ -522,7 +527,7 @@
         }).join("\n");
 
         detailCont.innerHTML = `
-            <h2 style="font-size: 1.5rem; margin-top: -10px; margin-bottom:2px;">${mk}</h2>
+            <h2 style="font-size: 1.5rem; margin-top: 0; margin-bottom:2px; padding: 0 26px; box-sizing: border-box; word-wrap: break-word;">${mk}</h2>
             <div class="detail-title-accent"></div>
             <p style="font-size: 0.9rem; margin-bottom: 15px; color: #ccc;">${tgl}</p>
             <div class="materi-scroll-wrap">
@@ -699,6 +704,9 @@
         document.getElementById("password-section").style.display = "none"; 
         document.getElementById("data-section").style.display = "none"; 
         document.getElementById("materi-view").style.display = "block"; 
+        const detailContEl = document.getElementById("materi-detail-container");
+        detailContEl.style.display = "none";
+        detailContEl.classList.add("materi-hidden");
         document.getElementById("modal-wrapper").classList.add("list-mode");
         document.getElementById("materi-title").innerText = "Materi Semester " + smt;
         let listDiv = document.getElementById("materi-list"); 
