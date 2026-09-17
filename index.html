@@ -80,6 +80,19 @@
         #progress { width: 0%; height: 100%; background: #bcd227; transition: 0.3s; }
         #materi-list { color: white; margin: 15px 0; text-align: left; max-height: 50dvh; overflow-y: auto; padding-right: 5px; scrollbar-width: none; }
         #loading-text { color: #ffffff; font-weight: bold; margin-bottom: 10px; }
+        @keyframes materiItemIn { from { opacity: 0; transform: translateY(-14px); } to { opacity: 1; transform: translateY(0); } }
+        .materi-item.materi-item-anim { opacity: 0; animation: materiItemIn 0.42s ease forwards; }
+        .materi-list-loading { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 30px 10px; color: rgba(255,255,255,0.75); font-size: 13px; }
+        .custom-alert-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.45); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 10050; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.25s ease; }
+        .custom-alert-overlay.show { display: flex; opacity: 1; }
+        .custom-alert-box { background: rgba(18, 20, 14, 0.85); backdrop-filter: blur(35px); -webkit-backdrop-filter: blur(35px); border: 1px solid rgba(255, 255, 255, 0.16); border-radius: 22px; padding: 30px 28px; width: 85%; max-width: 300px; text-align: center; color: white; box-sizing: border-box; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); transform: scale(0.85); transition: transform 0.25s ease; }
+        .custom-alert-overlay.show .custom-alert-box { transform: scale(1); }
+        .custom-alert-icon { width: 52px; height: 52px; margin: 0 auto 14px auto; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold; }
+        .custom-alert-icon.success { background: rgba(76, 175, 80, 0.85); color: white; }
+        .custom-alert-icon.error { background: rgba(244, 67, 54, 0.85); color: white; }
+        .custom-alert-message { font-size: 14px; line-height: 1.5; margin: 0; }
+        .materi-list-spinner { width: 18px; height: 18px; border-radius: 50%; border: 2.5px solid rgba(255,255,255,0.25); border-top-color: #bcd227; animation: materiSpin 0.8s linear infinite; flex: 0 0 auto; }
+        @keyframes materiSpin { to { transform: rotate(360deg); } }
         body.is-blur {
     filter: blur(8px);
     transition: filter 0.3s ease;
@@ -175,6 +188,13 @@
     </div>
 </div>
 
+<div class="custom-alert-overlay" id="custom-alert-overlay">
+    <div class="custom-alert-box">
+        <div class="custom-alert-icon" id="custom-alert-icon">✓</div>
+        <p class="custom-alert-message" id="custom-alert-message"></p>
+    </div>
+</div>
+
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
     import { getDatabase, ref, push, onValue, remove, set, get, child } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
@@ -182,6 +202,14 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
     let tempAction = null;
+
+    // Mengembalikan tanggal hari ini dalam format yyyy-mm-dd (sesuai waktu lokal perangkat)
+    // untuk mengisi otomatis input type="date" pada form Input Data Materi.
+    const getTanggalHariIni = () => {
+        const now = new Date();
+        const offsetMs = now.getTimezoneOffset() * 60000;
+        return new Date(now.getTime() - offsetMs).toISOString().split("T")[0];
+    };
 
     const handlePaste = (e) => {
         const item = (e.clipboardData || window.clipboardData).items[0];
@@ -224,6 +252,25 @@
         listDiv.style.maskImage = mask;
     };
     document.getElementById("materi-list").addEventListener("scroll", updateMateriListFade);
+
+    // Popup notifikasi custom bertema kaca (menggantikan alert() bawaan hp/browser),
+    // tampil di tengah layar dan otomatis hilang, atau bisa ditutup dengan tap di luar kotak.
+    let customAlertTimer = null;
+    window.showGlassAlert = (message, type = "success", duration = 1800) => {
+        const overlay = document.getElementById("custom-alert-overlay");
+        const icon = document.getElementById("custom-alert-icon");
+        const msg = document.getElementById("custom-alert-message");
+        msg.innerText = message;
+        icon.className = "custom-alert-icon " + type;
+        icon.innerText = type === "success" ? "✓" : "!";
+        overlay.classList.add("show");
+        clearTimeout(customAlertTimer);
+        customAlertTimer = setTimeout(() => { overlay.classList.remove("show"); }, duration);
+    };
+    document.getElementById("custom-alert-overlay").addEventListener("click", () => {
+        document.getElementById("custom-alert-overlay").classList.remove("show");
+        clearTimeout(customAlertTimer);
+    });
 
     window.openModal = () => { document.getElementById("login-modal").style.display = "flex"; document.getElementById("overlay").style.display = "block"; }
     window.closeModal = () => { 
@@ -483,7 +530,11 @@
                     document.getElementById("materi-isi").value = tempAction.data.isi;
                     document.getElementById("edit-id").value = tempAction.id;
                 }
-            } else { document.getElementById("data-section").style.display = "block"; document.getElementById("data-title").innerText = "Input Data Materi"; }
+            } else {
+                document.getElementById("data-section").style.display = "block";
+                document.getElementById("data-title").innerText = "Input Data Materi";
+                document.getElementById("tanggal").value = getTanggalHariIni();
+            }
         } else { alert("Password Salah!"); }
     }
 
@@ -498,10 +549,10 @@
         toggleLoading(true, "Menyimpan...");
         const refPath = id ? ref(db, 'materi/' + smt + '/' + id) : push(ref(db, 'materi/' + smt));
         set(refPath, { mk, tgl, isi }).then(() => {
-            alert("Data Berhasil Disimpan!"); 
             toggleLoading(false);
+            showGlassAlert("Data Berhasil Disimpan!", "success");
             document.getElementById("matkul").value = "";
-            document.getElementById("tanggal").value = "";
+            document.getElementById("tanggal").value = getTanggalHariIni();
             document.getElementById("materi-isi").value = "";
             document.getElementById("edit-id").value = "";
             if(id) { window.viewMateri(smt); }
@@ -700,7 +751,6 @@
     }
 
     window.viewMateri = async (smt) => {
-        toggleLoading(true, "Materi sedang dimuat, silahkan tunggu sebentar...");
         document.getElementById("password-section").style.display = "none"; 
         document.getElementById("data-section").style.display = "none"; 
         document.getElementById("materi-view").style.display = "block"; 
@@ -711,7 +761,12 @@
         document.getElementById("materi-title").innerText = "Materi Semester " + smt;
         let listDiv = document.getElementById("materi-list"); 
         listDiv.style.display = "block";
-        
+
+        // Modal langsung dibuka dengan indikator loading ringan di dalam daftar,
+        // tanpa menunggu seluruh data selesai dimuat (tidak ada overlay layar penuh).
+        listDiv.innerHTML = `<div class="materi-list-loading"><div class="materi-list-spinner"></div><span>Memuat materi...</span></div>`;
+        openModal();
+
         const snapshot = await get(child(ref(db), 'materi/' + smt));
         listDiv.innerHTML = ""; 
         const data = snapshot.val();
@@ -719,21 +774,26 @@
         else {
             let items = Object.keys(data).map(key => ({ id: key, ...data[key] }));
             items.sort((a, b) => new Date(b.tgl) - new Date(a.tgl));
-            items.forEach(item => {
+
+            // Setiap kartu mata kuliah dimasukkan satu per satu dengan jeda kecil,
+            // sehingga muncul bertahap dari atas ke bawah alih-alih langsung sekaligus.
+            const ITEM_STAGGER_MS = 90;
+            items.forEach((item, idx) => {
                 const encoded = btoa(encodeURIComponent(item.isi));
-                listDiv.innerHTML += `
-                    <div class="materi-item">
-                        <div class="materi-text-wrap"><strong>${item.mk}</strong><br><small>${item.tgl}</small></div>
-                        <div>
-                            <button class="btn-lihat" onclick="tampilkanDetail('${item.mk}', '${item.tgl}', '${encoded}', '${smt}', '${item.id}')">Lihat</button>
-                            <button class="btn-edit" onclick="initEdit('${smt}', '${item.id}', '${item.mk}', '${item.tgl}', '${encoded}')"><img src="pensil.png"></button>
-                            <button class="btn-hapus" onclick="initHapus('${smt}', '${item.id}')"><img src="sampah.png"></button>
-                        </div>
+                const el = document.createElement("div");
+                el.className = "materi-item materi-item-anim";
+                el.style.animationDelay = (idx * ITEM_STAGGER_MS) + "ms";
+                el.innerHTML = `
+                    <div class="materi-text-wrap"><strong>${item.mk}</strong><br><small>${item.tgl}</small></div>
+                    <div>
+                        <button class="btn-lihat" onclick="tampilkanDetail('${item.mk}', '${item.tgl}', '${encoded}', '${smt}', '${item.id}')">Lihat</button>
+                        <button class="btn-edit" onclick="initEdit('${smt}', '${item.id}', '${item.mk}', '${item.tgl}', '${encoded}')"><img src="pensil.png"></button>
+                        <button class="btn-hapus" onclick="initHapus('${smt}', '${item.id}')"><img src="sampah.png"></button>
                     </div>`;
+                listDiv.appendChild(el);
+                setTimeout(() => requestAnimationFrame(updateMateriListFade), idx * ITEM_STAGGER_MS + 60);
             });
         }
-        toggleLoading(false);
-        openModal();
         requestAnimationFrame(updateMateriListFade);
     }
 
