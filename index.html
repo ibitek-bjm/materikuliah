@@ -25,7 +25,8 @@
         .semester-list { width: 100%; margin: 20px auto; font-family: 'Outfit', sans-serif; display: flex; flex-direction: column; list-style: none; padding: 0; gap: 10px; }
         .semester-list li { background: linear-gradient(135deg, rgba(230, 230, 210, 0.108), rgba(248, 241, 241, 0.003)); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px); border: 1px solid rgba(160, 160, 76, 0.108); padding: 15px; border-radius: 20px; text-align: center; color: black; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.364); cursor: pointer; font-size: 14px;}
         .semester-list li:hover { background: rgba(255, 255, 255, 0.018); transform: scale(1.02); }
-        .icon-gembok { position: absolute; top: 0; right: 0; font-size: 24px; cursor: pointer; }
+        .icon-gembok { position: absolute; top: 0; right: 0; font-size: 24px; cursor: pointer; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; color: rgba(0, 0, 0, 0.75); transition: color 0.2s ease, transform 0.2s ease; }
+        .icon-gembok:hover { color: #000000; transform: translateY(-1px); }
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999; justify-content: center; align-items: center; }
         .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.55); backdrop-filter: blur(10px); z-index: 9998; }
         .modal-content { background: rgba(18, 20, 14, 0.82); backdrop-filter: blur(35px); padding: 30px; border-radius: 25px; width: 90%; max-width: 400px; max-height: 90vh; overflow-y: auto; text-align: center; color: white; box-sizing: border-box; filter: drop-shadow(0px 4px 10px rgba(0, 0, 0, 0.55)); border: 1px solid rgba(255, 255, 255, 0.14); position: relative; }
@@ -52,6 +53,11 @@
         .icon-btn-share:hover { background: rgba(255, 255, 255, 0.22); }
         .icon-btn-download { background: rgba(76, 175, 80, 0.9); color: white; }
         .icon-btn-download:hover { background: rgba(76, 175, 80, 1); }
+        .icon-btn-font { background: rgba(0,0,0,0.5); border: 1px solid rgba(255, 255, 255, 0.25); color: white; font-family: 'Outfit', sans-serif; font-weight: 700; line-height: 1; }
+        .icon-btn-font:hover { background: rgba(255, 255, 255, 0.22); }
+        .icon-btn-font:disabled { opacity: 0.35; cursor: default; transform: none; }
+        .icon-btn-font .fs-small { font-size: 11px; }
+        .icon-btn-font .fs-big { font-size: 17px; }
         .icon-btn-group { display: flex; gap: 22px; align-items: flex-start; }
         .icon-btn-wrap { display: flex; flex-direction: column; align-items: center; gap: 6px; }
         .icon-btn-label { font-size: 11px; color: rgba(255, 255, 255, 0.75); }
@@ -66,12 +72,49 @@
         .btn-batal { background: rgba(244, 67, 54, 0.85); color: white; }
         .btn-unduh { background: rgba(76, 175, 80, 0.9); color: white; }
         #data-section input, #data-section select, #data-section textarea { width: 100%; padding: 12px; margin: 10px 0; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.3); background: rgba(255, 255, 255, 0.1); color: whitesmoke; box-sizing: border-box; -webkit-appearance: none; -moz-appearance: none; appearance: none; font-family: inherit; display: block; }
+
+        /* ===== Dropdown semester & kalender custom (sesuai tema) ===== */
+        .native-hidden { display: none !important; }
+        .cselect, .cdate { position: relative; margin: 10px 0; text-align: left; }
+        .cfield { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.3); background: rgba(255, 255, 255, 0.1); color: whitesmoke; font-family: inherit; font-size: 13.3333px; text-align: left; display: flex; align-items: center; justify-content: space-between; gap: 10px; cursor: pointer; box-sizing: border-box; transition: border-color 0.2s ease, background 0.2s ease; }
+        .cfield:hover { background: rgba(255, 255, 255, 0.14); }
+        .cfield:focus-visible, .cselect.open .cfield, .cdate.open .cfield { outline: none; border-color: rgba(188, 210, 39, 0.75); }
+        .cfield-text.placeholder { opacity: 0.55; }
+        .cfield svg { width: 18px; height: 18px; flex: 0 0 auto; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; opacity: 0.8; transition: transform 0.2s ease; }
+        .cselect.open .cfield svg { transform: rotate(180deg); }
+        .cpanel { display: none; position: absolute; top: calc(100% + 6px); left: 0; z-index: 30; background: rgba(24, 27, 18, 0.97); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 14px; box-shadow: 0 10px 28px rgba(0, 0, 0, 0.55); box-sizing: border-box; color: #f5f5f0; animation: cpanelIn 0.16s ease; }
+        .cselect.open > .cpanel, .cdate.open > .cpanel { display: block; }
+        @keyframes cpanelIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+        .cselect-list { right: 0; margin: 0; padding: 6px; list-style: none; max-height: 240px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: rgba(255, 255, 255, 0.3) transparent; }
+        .cselect-list li { padding: 10px 12px; border-radius: 8px; font-size: 13.3333px; cursor: pointer; transition: background 0.15s ease; }
+        .cselect-list li:hover { background: rgba(255, 255, 255, 0.1); }
+        .cselect-list li.selected { background: rgba(188, 210, 39, 0.18); color: #bcd227; font-weight: 700; }
+        .cal { width: min(100%, 320px); padding: 12px; }
+        .cal-head { display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-bottom: 8px; }
+        .cal-title { flex: 1; background: transparent; border: none; color: #ffffff; font-family: inherit; font-size: 14px; font-weight: 700; padding: 6px; border-radius: 8px; cursor: pointer; }
+        .cal-title:hover, .cal-nav:hover { background: rgba(255, 255, 255, 0.1); }
+        .cal-nav { width: 32px; height: 32px; flex: 0 0 auto; display: flex; align-items: center; justify-content: center; background: transparent; border: none; border-radius: 8px; color: #ffffff; cursor: pointer; padding: 0; }
+        .cal-nav svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+        .cal-week, .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+        .cal-week span { text-align: center; font-size: 11px; color: rgba(255, 255, 255, 0.55); padding: 6px 0; }
+        .cal-grid.months { grid-template-columns: repeat(3, 1fr); gap: 6px; }
+        .cal-day, .cal-month { background: transparent; border: 1px solid transparent; color: #f5f5f0; font-family: inherit; font-size: 13px; border-radius: 10px; cursor: pointer; padding: 0; height: 36px; transition: background 0.15s ease; }
+        .cal-month { height: 42px; }
+        .cal-day:hover, .cal-month:hover { background: rgba(255, 255, 255, 0.12); }
+        .cal-day.other { color: rgba(255, 255, 255, 0.3); }
+        .cal-day.today { border-color: rgba(188, 210, 39, 0.7); }
+        .cal-day.selected, .cal-month.selected { background: rgba(188, 210, 39, 0.9); color: #1a1d10; font-weight: 700; }
+        .cal-foot { display: flex; justify-content: flex-end; margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255, 255, 255, 0.12); }
+        .cal-today-btn { background: transparent; border: none; color: #bcd227; font-family: inherit; font-size: 13px; font-weight: 700; cursor: pointer; padding: 6px 10px; border-radius: 8px; }
+        .cal-today-btn:hover { background: rgba(188, 210, 39, 0.15); }
         h2 { margin-top: 0; font-size: 1.5rem; color: white; }
         .materi-item { background: rgba(255, 255, 255, 0.1); padding: 10px; margin-bottom: 8px; border-radius: 10px; font-size: 12px; display: flex; justify-content: space-between; align-items: center; position: relative; overflow: hidden; border: 1px solid rgba(255, 255, 255, 0.12); }
         .materi-text-wrap { flex: 1; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; margin-right: 10px; text-align: left; }
         .btn-lihat { background: rgba(188, 210, 39, 0.9); color: #1a1d10; font-weight: bold; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; white-space: nowrap; }
         .btn-hapus, .btn-edit { background: transparent; border: none; cursor: pointer; padding: 0; margin-left: 8px; vertical-align: middle; }
-        .btn-hapus img, .btn-edit img { width: 20px; height: 20px; display: block; }
+        .btn-hapus, .btn-edit { color: rgba(255, 255, 255, 0.75); transition: color 0.2s ease, transform 0.2s ease; }
+        .btn-hapus:hover, .btn-edit:hover { color: #ffffff; transform: translateY(-1px); }
+        .btn-hapus svg, .btn-edit svg { width: 20px; height: 20px; display: block; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
         .materi-box-display { background: rgba(255, 255, 255, 0.1); padding: 15px; border-radius: 10px; text-align: left; white-space: pre-wrap; font-size: 14px; line-height: 1.6; margin-top: 10px; max-height: 50vh; overflow-y: auto; color: #f5f5f0; border: 1px solid rgba(255, 255, 255, 0.12); scrollbar-width: none; }
         .materi-box-display img { max-width: 100%; height: auto; border-radius: 15px; display: block; margin: 10px auto; }
         #loading-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 10000; justify-content: center; align-items: center; color: white; background: rgba(0, 0, 0, 0.35); backdrop-filter: blur(6px); }
@@ -100,11 +143,11 @@
         .book-paper { position: relative; perspective: 1600px; }
         .book-leaf { position: absolute; inset: 0; z-index: 3; transform-origin: left center; backface-visibility: hidden; -webkit-backface-visibility: hidden; will-change: transform, opacity; }
         .book-clip { height: 100%; overflow: hidden; }
-        .book-cols { text-align: left; white-space: pre-wrap; font-size: 14px; line-height: 1.7; will-change: transform; }
+        .book-cols { text-align: left; white-space: pre-wrap; font-size: calc(14px + var(--fs-step, 0px)); line-height: 1.7; will-change: transform; }
         .book-cols img { max-width: 100%; max-height: 38dvh; width: auto; height: auto; border-radius: 8px; display: block; margin: 8px auto; break-inside: avoid; }
         .book-cols .dosen-highlight { color: #5a4510; background: rgba(185,154,63,0.2); }
         .book-head { display: block; white-space: normal; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 2px solid #b99a3f; }
-        .book-head b { display: block; font-size: 17px; }
+        .book-head b { display: block; font-size: calc(17px + var(--fs-step, 0px)); }
         .book-head small { color: #7a6a45; font-size: 12px; }
         .book-num { position: absolute; left: 0; right: 0; bottom: 8px; text-align: center; font-size: 11px; color: #8a7a55; pointer-events: none; }
         .book-cover { position: absolute; inset: 0; z-index: 6; transform-origin: left center; backface-visibility: hidden; -webkit-backface-visibility: hidden; border-radius: 16px; background: linear-gradient(90deg, rgba(0,0,0,0.35) 0, rgba(255,255,255,0.08) 10px, rgba(0,0,0,0) 26px), linear-gradient(145deg, #2f4a33, #16241a); border: 1px solid rgba(188,210,39,0.35); box-shadow: 0 8px 20px rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; text-align: center; padding: 24px 24px 24px 34px; box-sizing: border-box; transition: transform 0.95s cubic-bezier(0.6,0.05,0.25,1), opacity 0.2s ease; }
@@ -142,13 +185,13 @@
             .modal-content:has(#materi-detail-container:not(.materi-hidden)) { max-width: 620px; }
             .modal-content:has(#materi-detail-container:not(.materi-hidden)) .book-paper,
             .modal-content:has(#materi-detail-container:not(.materi-hidden)) .book-leaf { padding: 12px 12px 26px 20px; }
-            .book-cols { font-size: 13px; line-height: 1.6; }
-            .book-head b { font-size: 15px; }
+            .book-cols { font-size: calc(13px + var(--fs-step, 0px)); line-height: 1.6; }
+            .book-head b { font-size: calc(15px + var(--fs-step, 0px)); }
             .book-nav { margin-top: 10px; gap: 14px; }
             .book-nav button { width: 34px; height: 34px; }
             .cover-title { font-size: 20px; }
         }
-        @media (min-width: 1100px) { .book-paper, .book-leaf { height: min(58dvh, 620px); padding: 22px 26px 34px 34px; } .book-cols { font-size: 16px; } .cover-title { font-size: 30px; } }
+        @media (min-width: 1100px) { .book-paper, .book-leaf { height: min(58dvh, 620px); padding: 22px 26px 34px 34px; } .book-cols { font-size: calc(16px + var(--fs-step, 0px)); } .cover-title { font-size: 30px; } }
 
         body.is-blur {
     filter: blur(8px);
@@ -188,7 +231,7 @@
 
 <div class="page-wrapper" id="page-wrapper">
     <div class="glass-card" id="main-card">
-        <img src="gembok.png" class="icon-gembok" onclick="openModal()" style="width: 30px;">
+        <svg class="icon-gembok" viewBox="0 0 24 24" onclick="openModal()" role="button" aria-label="Buka menu admin" style="width: 30px; height: 30px;"><rect x="4" y="11" width="16" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg>
         <img src="logo ibitek.png" class="logo">
         <h1>RINGKASAN MATERI KULIAH</h1>
         <p>INSTITUT BISNIS DAN TEKNOLOGI KALIMANTAN BANJARMASIN</p>
@@ -224,14 +267,22 @@
         <div id="data-section" style="display: none;">
             <h2 id="data-title">Input Data Materi</h2>
             <input type="hidden" id="edit-id">
-            <select id="semester">
+            <select id="semester" class="native-hidden">
                 <option value="1">Semester 1</option><option value="2">Semester 2</option>
                 <option value="3">Semester 3</option><option value="4">Semester 4</option>
                 <option value="5">Semester 5</option><option value="6">Semester 6</option>
                 <option value="7">Semester 7</option><option value="8">Semester 8</option>
             </select>
+            <div class="cselect" id="cs-semester">
+                <button type="button" class="cfield" aria-haspopup="listbox" aria-expanded="false"><span class="cfield-text"></span><svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg></button>
+                <ul class="cpanel cselect-list" role="listbox"></ul>
+            </div>
             <input type="text" id="matkul" placeholder="Nama Mata Kuliah">
-            <input type="date" id="tanggal">
+            <input type="date" id="tanggal" class="native-hidden">
+            <div class="cdate" id="cd-tanggal">
+                <button type="button" class="cfield" aria-haspopup="dialog" aria-expanded="false"><span class="cfield-text"></span><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg></button>
+                <div class="cpanel cal" role="dialog" aria-label="Pilih tanggal"></div>
+            </div>
             <textarea id="materi-isi" placeholder="Tulis isi materi di sini (bisa paste gambar)..." style="height: 300px;"></textarea>
             <div class="button-group">
                 <button class="btn btn-buka" onclick="saveData()">Simpan</button>
@@ -660,6 +711,12 @@
                     <button class="icon-btn icon-btn-download" onclick="downloadMateri('${mk}', '${tgl}', '${encodedIsi}')" aria-label="Unduh PDF" title="Unduh PDF">${dlIcon}</button>
                     
                 </div>
+                <div class="icon-btn-wrap">
+                    <button class="icon-btn icon-btn-font" id="btn-font-kecil" onclick="ubahFont(-1)" aria-label="Perkecil font" title="Perkecil font"><span class="fs-small">A</span><span class="fs-small">&minus;</span></button>
+                </div>
+                <div class="icon-btn-wrap">
+                    <button class="icon-btn icon-btn-font" id="btn-font-besar" onclick="ubahFont(1)" aria-label="Perbesar font" title="Perbesar font"><span class="fs-big">A</span><span class="fs-small">+</span></button>
+                </div>
             </div>
             <div class="book" id="book" onclick="bookTap(event)">
                 <div class="book-paper">
@@ -683,6 +740,8 @@
             </div>
         `;
 
+        terapkanFont();
+
         // Bagi isi menjadi halaman, lalu buka sampul dengan animasi.
         bookState.page = 0; bookState.flipping = false; bookState.closing = false;
         bookLayout();
@@ -690,6 +749,29 @@
         if (document.fonts && document.fonts.ready) document.fonts.ready.then(bookLayout);
         detailCont.querySelectorAll(".book-cols img").forEach(img => { if (!img.complete) img.addEventListener("load", bookLayout); });
     }
+
+    // ===== Ukuran font materi (tombol A- / A+) =====
+    const FONT_STEP_MIN = -3, FONT_STEP_MAX = 8;
+    let fontStep = 0;
+    try { fontStep = Math.max(FONT_STEP_MIN, Math.min(FONT_STEP_MAX, parseInt(localStorage.getItem("materiFontStep"), 10) || 0)); } catch (e) {}
+
+    function terapkanFont() {
+        const bk = document.getElementById("book");
+        if (bk) bk.style.setProperty("--fs-step", fontStep + "px");
+        const kecil = document.getElementById("btn-font-kecil");
+        const besar = document.getElementById("btn-font-besar");
+        if (kecil) kecil.disabled = fontStep <= FONT_STEP_MIN;
+        if (besar) besar.disabled = fontStep >= FONT_STEP_MAX;
+    }
+
+    window.ubahFont = (dir) => {
+        const next = Math.max(FONT_STEP_MIN, Math.min(FONT_STEP_MAX, fontStep + dir));
+        if (next === fontStep) return;
+        fontStep = next;
+        try { localStorage.setItem("materiFontStep", String(fontStep)); } catch (e) {}
+        terapkanFont();
+        bookLayout(); // hitung ulang pembagian halaman
+    };
 
     // ===== Mesin buku: pagination dengan CSS columns + animasi balik halaman =====
     const bookState = { page: 0, total: 1, W: 0, GAP: 30, flipping: false, closing: false, swipeAt: 0 };
@@ -984,8 +1066,8 @@
                     <div class="materi-text-wrap"><strong>${item.mk}</strong><br><small>${item.tgl}</small></div>
                     <div>
                         <button class="btn-lihat" onclick="tampilkanDetail('${item.mk}', '${item.tgl}', '${encoded}', '${smt}', '${item.id}')">Lihat</button>
-                        <button class="btn-edit" onclick="initEdit('${smt}', '${item.id}', '${item.mk}', '${item.tgl}', '${encoded}')"><img src="pensil.png"></button>
-                        <button class="btn-hapus" onclick="initHapus('${smt}', '${item.id}')"><img src="sampah.png"></button>
+                        <button class="btn-edit" aria-label="Edit" title="Edit" onclick="initEdit('${smt}', '${item.id}', '${item.mk}', '${item.tgl}', '${encoded}')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg></button>
+                        <button class="btn-hapus" aria-label="Hapus" title="Hapus" onclick="initHapus('${smt}', '${item.id}')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"></path><path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2"></path><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path></svg></button>
                     </div>`;
                 listDiv.appendChild(el);
                 setTimeout(() => requestAnimationFrame(updateMateriListFade), idx * ITEM_STAGGER_MS + 60);
@@ -1014,6 +1096,154 @@
     window.addEventListener("DOMContentLoaded", () => {
         bukaMateriDariURL();
     });
+</script>
+<script>
+// Dropdown semester & kalender custom. Elemen <select>/<input type="date"> asli tetap ada (disembunyikan)
+// sebagai penyimpan nilai, jadi kode lama yang memakai .value tetap jalan dan tampilan custom ikut ter-update.
+(() => {
+    const $ = id => document.getElementById(id);
+    const BULAN = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
+    const HARI = ["Sen","Sel","Rab","Kam","Jum","Sab","Min"];
+    const pad = n => String(n).padStart(2, "0");
+    const toISO = (y, m, d) => `${y}-${pad(m + 1)}-${pad(d)}`;
+    const parseISO = v => { const r = /^(\d{4})-(\d{2})-(\d{2})$/.exec(v || ""); return r ? { y: +r[1], m: +r[2] - 1, d: +r[3] } : null; };
+    const todayISO = () => { const n = new Date(); return toISO(n.getFullYear(), n.getMonth(), n.getDate()); };
+
+    // Setiap kali .value diubah lewat kode, tampilan custom ikut diperbarui.
+    function hookValue(el, onChange) {
+        const desc = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(el), "value");
+        Object.defineProperty(el, "value", {
+            configurable: true,
+            get() { return desc.get.call(this); },
+            set(v) { desc.set.call(this, v); onChange(); }
+        });
+    }
+    function setOpen(root, open) {
+        root.classList.toggle("open", open);
+        root.querySelector(".cfield").setAttribute("aria-expanded", open ? "true" : "false");
+    }
+    function closeAll(except) {
+        document.querySelectorAll(".cselect.open, .cdate.open").forEach(el => { if (el !== except) setOpen(el, false); });
+    }
+    document.addEventListener("pointerdown", e => { if (!e.target.closest(".cselect, .cdate")) closeAll(); });
+    document.addEventListener("keydown", e => {
+        if (e.key !== "Escape") return;
+        const open = document.querySelector(".cselect.open, .cdate.open");
+        if (open) { setOpen(open, false); open.querySelector(".cfield").focus(); }
+    });
+
+    // ===== Semester =====
+    (() => {
+        const sel = $("semester"), root = $("cs-semester");
+        const btn = root.querySelector(".cfield"), txt = root.querySelector(".cfield-text"), list = root.querySelector(".cselect-list");
+        Array.from(sel.options).forEach(o => {
+            const li = document.createElement("li");
+            li.setAttribute("role", "option");
+            li.dataset.value = o.value;
+            li.textContent = o.textContent;
+            list.appendChild(li);
+        });
+        function render() {
+            const o = sel.options[sel.selectedIndex];
+            txt.textContent = o ? o.textContent : "";
+            list.querySelectorAll("li").forEach(li => {
+                const on = li.dataset.value === sel.value;
+                li.classList.toggle("selected", on);
+                li.setAttribute("aria-selected", on ? "true" : "false");
+            });
+        }
+        hookValue(sel, render);
+        btn.addEventListener("click", () => {
+            const open = !root.classList.contains("open");
+            closeAll(root); setOpen(root, open);
+            if (open) { const on = list.querySelector(".selected"); if (on) list.scrollTop = on.offsetTop - list.clientHeight / 2 + on.offsetHeight / 2; }
+        });
+        list.addEventListener("click", e => {
+            const li = e.target.closest("li"); if (!li) return;
+            sel.value = li.dataset.value;
+            setOpen(root, false); btn.focus();
+        });
+        btn.addEventListener("keydown", e => {
+            if (e.key !== "ArrowDown" && e.key !== "ArrowUp") return;
+            e.preventDefault();
+            const i = Math.max(0, Math.min(sel.options.length - 1, sel.selectedIndex + (e.key === "ArrowDown" ? 1 : -1)));
+            sel.value = sel.options[i].value;
+            const on = list.querySelector(".selected"); if (on && root.classList.contains("open")) on.scrollIntoView({ block: "nearest" });
+        });
+        render();
+    })();
+
+    // ===== Kalender =====
+    (() => {
+        const inp = $("tanggal"), root = $("cd-tanggal");
+        const btn = root.querySelector(".cfield"), txt = root.querySelector(".cfield-text"), panel = root.querySelector(".cal");
+        const view = { y: 0, m: 0, mode: "days" };
+        const chevL = '<svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="15 18 9 12 15 6"></polyline></svg>';
+        const chevR = '<svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="9 18 15 12 9 6"></polyline></svg>';
+
+        function syncView() {
+            const p = parseISO(inp.value) || parseISO(todayISO());
+            view.y = p.y; view.m = p.m;
+        }
+        function renderField() {
+            const p = parseISO(inp.value);
+            txt.textContent = p ? `${p.d} ${BULAN[p.m]} ${p.y}` : "Pilih tanggal";
+            txt.classList.toggle("placeholder", !p);
+        }
+        function renderCal() {
+            const sel = parseISO(inp.value), today = todayISO();
+            let body;
+            if (view.mode === "months") {
+                let cells = "";
+                BULAN.forEach((n, i) => {
+                    const on = sel && sel.y === view.y && sel.m === i;
+                    cells += `<button type="button" class="cal-month${on ? " selected" : ""}" data-act="month" data-m="${i}">${n.slice(0, 3)}</button>`;
+                });
+                body = `<div class="cal-grid months">${cells}</div>`;
+            } else {
+                const offset = (new Date(view.y, view.m, 1).getDay() + 6) % 7; // minggu dimulai Senin
+                let cells = "";
+                for (let i = 0; i < 42; i++) {
+                    const dt = new Date(view.y, view.m, i - offset + 1);
+                    const iso = toISO(dt.getFullYear(), dt.getMonth(), dt.getDate());
+                    const cls = ["cal-day", dt.getMonth() !== view.m ? "other" : "", iso === today ? "today" : "", iso === inp.value ? "selected" : ""].filter(Boolean).join(" ");
+                    cells += `<button type="button" class="${cls}" data-act="day" data-iso="${iso}">${dt.getDate()}</button>`;
+                }
+                body = `<div class="cal-week">${HARI.map(h => `<span>${h}</span>`).join("")}</div><div class="cal-grid">${cells}</div>
+                        <div class="cal-foot"><button type="button" class="cal-today-btn" data-act="today">Hari Ini</button></div>`;
+            }
+            const title = view.mode === "months" ? `${view.y}` : `${BULAN[view.m]} ${view.y}`;
+            panel.innerHTML = `<div class="cal-head">
+                <button type="button" class="cal-nav" data-act="prev" aria-label="Sebelumnya">${chevL}</button>
+                <button type="button" class="cal-title" data-act="title">${title}</button>
+                <button type="button" class="cal-nav" data-act="next" aria-label="Berikutnya">${chevR}</button>
+            </div>${body}`;
+        }
+        function pick(iso) { inp.value = iso; setOpen(root, false); btn.focus(); }
+
+        hookValue(inp, () => { renderField(); syncView(); renderCal(); });
+        btn.addEventListener("click", () => {
+            const open = !root.classList.contains("open");
+            closeAll(root); setOpen(root, open);
+            if (open) { view.mode = "days"; syncView(); renderCal(); }
+        });
+        panel.addEventListener("click", e => {
+            const b = e.target.closest("[data-act]"); if (!b) return;
+            const act = b.dataset.act;
+            if (act === "day") return pick(b.dataset.iso);
+            if (act === "today") return pick(todayISO());
+            if (act === "month") { view.m = +b.dataset.m; view.mode = "days"; }
+            else if (act === "title") view.mode = view.mode === "days" ? "months" : "days";
+            else {
+                const dir = act === "prev" ? -1 : 1;
+                if (view.mode === "months") view.y += dir;
+                else { const d = new Date(view.y, view.m + dir, 1); view.y = d.getFullYear(); view.m = d.getMonth(); }
+            }
+            renderCal();
+        });
+        syncView(); renderField(); renderCal();
+    })();
+})();
 </script>
 </body>
 </html>
